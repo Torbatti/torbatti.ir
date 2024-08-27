@@ -1,0 +1,5 @@
+# https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview
+User-agent: *
+Allow: /
+
+Sitemap: https://torbatti.ir/sitemap-index.xml
