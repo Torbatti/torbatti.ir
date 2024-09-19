@@ -1,0 +1,416 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>The C10K problem</title>
+</head>
+<body>
+<h1><a name="top">The C10K problem</a></h1>
+<font color="red">[<a href="http://www.lwn.net/">Help save the best Linux news source on the web -- subscribe to Linux Weekly News!</a>]</font>
+<p>
+It's time for web servers to handle ten thousand clients simultaneously,
+don't you think?  After all, the web is a big place now. 
+</p><p>
+And computers are big, too.  You can buy a 1000MHz machine
+with 2 gigabytes of RAM and an 1000Mbit/sec Ethernet card for $1200 or so.  
+Let's see - at 20000 clients, that's
+50KHz, 100Kbytes, and 50Kbits/sec per client.  
+
+It shouldn't take any more horsepower than that to take four kilobytes 
+from the disk and send them to the network once a second for each
+of twenty thousand clients.
+(That works out to $0.08 per client, by the way.  Those
+$100/client licensing fees some operating systems charge are starting to 
+look a little heavy!)  So hardware is no longer the bottleneck.
+</p><p>
+In 1999 one of the busiest ftp sites, cdrom.com, 
+actually handled 10000 clients simultaneously
+through a Gigabit Ethernet pipe.
+As of 2001, that same speed is now 
+<a href="http://www.senteco.com/telecom/ethernet.htm">being offered by several ISPs</a>,
+who expect it to become increasingly popular with large business customers.
+</p><p>
+And the thin client model of computing appears to be coming back in
+style -- this time with the server out on the Internet, serving
+thousands of clients.
+</p><p>
+With that in mind, here are a few notes on how to configure operating 
+systems and write code to support thousands of clients.  The discussion
+centers around Unix-like operating systems, as that's my personal area
+of interest, but Windows is also covered a bit.
+
+</p><h2>Contents</h2>
+<ul>
+<li><a href="#top">The C10K problem</a>
+</li><li><a href="#related">Related Sites</a>
+</li><li><a href="#books">Book to Read First</a>
+</li><li><a href="#frameworks">I/O frameworks</a>
+</li><li><a href="#strategies">I/O Strategies</a>
+<ol>
+	<li><a href="#nb">Serve many clients with each thread, and use nonblocking I/O and <b>level-triggered</b> readiness notification</a>
+	<ul>
+		<li><a href="#nb.select">The traditional select()</a>
+		</li><li><a href="#nb.poll">The traditional poll()</a>
+		</li><li><a href="#nb./dev/poll">/dev/poll</a> (Solaris 2.7+)
+		</li><li><a href="#nb.kqueue">kqueue</a> (FreeBSD, NetBSD)
+	</li></ul>
+	</li><li><a href="#nb.edge">Serve many clients with each thread, and use nonblocking I/O and readiness <b>change</b> notification</a>
+	<ul>
+		<li><a href="#nb.epoll">epoll</a> (Linux 2.6+)
+		</li><li><a href="#nb.kevent">Polyakov's kevent</a> (Linux 2.6+)
+		</li><li><a href="#nb.newni">Drepper's New Network Interface</a> (proposal for Linux 2.6+)
+		</li><li><a href="#nb.sigio">Realtime Signals</a> (Linux 2.4+)
+		</li><li><a href="#nb.sigfd">Signal-per-fd</a>
+		</li><li><a href="#nb.kqueue">kqueue</a> (FreeBSD, NetBSD)
+	</li></ul>
+	</li><li><a href="#aio">Serve many clients with each thread, and use asynchronous I/O and completion notification</a>
+	</li><li><a href="#threaded">Serve one client with each server thread</a>
+	<ul>
+		<li><a href="#threads.linuxthreads">LinuxThreads</a> (Linux 2.0+)
+		</li><li><a href="#threads.ngpt">NGPT</a> (Linux 2.4+)
+		</li><li><a href="#threads.nptl">NPTL</a> (Linux 2.6, Red Hat 9)
+		</li><li><a href="#threads.freebsd">FreeBSD threading support</a>
+		</li><li><a href="#threads.netbsd">NetBSD threading support</a>
+		</li><li><a href="#threads.solaris">Solaris threading support</a>
+        </li><li><a href="#threads.java">Java threading support in JDK 1.3.x and earlier</a></li>
+		<li><a href="#1:1">Note: 1:1 threading vs. M:N threading</a>
+	</li></ul>
+	</li><li><a href="#kio">Build the server code into the kernel</a>
+	</li><li><a href="#userspace">Bring the TCP stack into userspace</a>
+</li></ol>
+</li><li><a href="#comments">Comments</a>
+</li><li><a href="#limits.filehandles">Limits on open filehandles</a>
+</li><li><a href="#limits.threads">Limits on threads</a>
+</li><li><a href="#java">Java issues</a> [Updated 27 May 2001]
+</li><li><a href="#tips">Other tips</a>
+<ul>
+	<li><a href="#zerocopy">Zero-Copy</a>
+	</li><li><a href="#sendfile">The sendfile() system call can implement zero-copy networking.</a>
+	</li><li><a href="#writev">Avoid small frames by using writev (or TCP_CORK)</a>
+	</li><li><a href="#nativethreads">Some programs can benefit from using non-Posix threads.</a>
+	</li><li><a href="#caching">Caching your own data can sometimes be a win.</a>
+</li></ul>
+</li><li><a href="#limits.other">Other limits</a>
+</li><li><a href="#kernel">Kernel Issues</a> 
+</li><li><a href="#benchmarking">Measuring Server Performance</a>
+</li><li><a href="#examples">Examples</a>
+<ul>
+	<li><a href="#examples.nb.select">Interesting select()-based servers</a>
+	</li><li><a href="#examples.nb./dev/poll">Interesting /dev/poll-based servers</a>
+	</li><li><a href="#examples.nb.epoll">Interesting epoll-based servers</a>
+	</li><li><a href="#examples.nb.kqueue">Interesting kqueue()-based servers</a>
+	</li><li><a href="#examples.nb.sigio">Interesting realtime signal-based servers</a> 
+	</li><li><a href="#examples.threaded">Interesting thread-based servers</a>
+	</li><li><a href="#examples.kio">Interesting in-kernel servers</a>
+</li></ul>
+</li><li><a href="#links">Other interesting links</a>
+</li></ul>
+<p>
+
+</p><h2><a name="related">Related Sites</a></h2>
+See Nick Black's execellent <a href="http://dank.qemfd.net/dankwiki/index.php/Network_servers">Fast UNIX Servers</a>
+page
+for a circa-2009 look at the situation.
+<p>
+In October 2003, Felix von Leitner put together an excellent <a href="http://bulk.fefe.de/scalability/">web page</a>
+and <a href="http://bulk.fefe.de/scalable-networking.pdf">presentation</a> about network scalability,
+complete with benchmarks comparing various networking system calls and operating systems.
+One of his observations is that the 2.6 Linux kernel really does beat the 2.4 kernel,
+but there are many, many good graphs that will give the OS developers food for thought for some time.
+(See also the <a href="http://developers.slashdot.org/developers/03/10/19/0130256.shtml?tid=106&amp;tid=130&amp;tid=185&amp;tid=190">Slashdot</a>
+comments; it'll be interesting to see whether anyone does followup benchmarks improving on Felix's results.)
+
+</p><h2><a name="books">Book to Read First</a></h2>
+<p>
+If you haven't read it already, go out and get a copy of
+<a href="http://www.amazon.com/exec/obidos/ASIN/013490012X/">
+Unix Network Programming : Networking Apis: Sockets and Xti (Volume 1)</a>
+by the late W. Richard Stevens.  It describes many of the I/O
+strategies and pitfalls related to writing high-performance servers.
+It even talks about the <a href="http://www.citi.umich.edu/projects/linux-scalability/reports/accept.html">'thundering herd'</a> problem.
+And while you're at it, go read <a href="http://pl.atyp.us/content/tech/servers.html">Jeff Darcy's notes on high-performance server design</a>.
+</p><p>
+(Another book which might be more helpful for those
+who are *using* rather than *writing* a web server is
+<a href="http://www.amazon.com/gp/product/0596102356">Building Scalable Web Sites</a> by Cal Henderson.)
+
+</p><h3><a name="frameworks">I/O frameworks</a></h3>
+<p>
+Prepackaged libraries are available that abstract some of the techniques presented below, 
+insulating your code from the operating system and making it more portable.
+</p><ul>
+<li><a href="http://www.cs.wustl.edu/~schmidt/ACE.html">ACE</a>, a heavyweight C++ I/O framework,
+contains object-oriented implementations of some of these I/O strategies
+and many other useful things.
+In particular, his Reactor is an OO way of doing nonblocking I/O, and
+Proactor is an OO way of doing asynchronous I/O.
+</li><li><a href="http://asio.sf.net/">ASIO</a> is an C++ I/O framework
+which is becoming part of the Boost library.  It's like ACE updated for 
+the STL era.
+</li><li>
+<a href="http://monkey.org/~provos/libevent">libevent</a> is a lightweight C
+I/O framework by Niels Provos.  It supports kqueue and select,
+and soon will support poll and epoll.  It's level-triggered only, I think,
+which has both good and bad sides.  Niels has 
+<a href="http://monkey.org/~provos/libevent/libevent-benchmark.jpg">a nice graph of time to handle one event</a>
+ as a function of the number of connections.  It shows kqueue and sys_epoll
+as clear winners.
+</li><li>My own attempts at lightweight frameworks (sadly, not kept up to date):
+<ul>
+<li>
+<a href="http://www.kegel.com/dkftpbench/Poller_bench.html">Poller</a> is a lightweight C++ 
+I/O framework that implements a level-triggered readiness API using whatever underlying 
+readiness API you want (poll, select, /dev/poll, kqueue, or sigio).
+It's useful for <a href="http://www.kegel.com/dkftpbench/Poller_bench.html">benchmarks that compare
+the performance of the various APIs.</a>  This document links to 
+Poller subclasses below to illustrate how each of the readiness APIs
+can be used.
+</li><li>
+<a href="http://www.kegel.com/rn/">rn</a> is a lightweight C I/O framework that was my second try
+after Poller.  It's lgpl (so it's easier to use in commercial apps) and
+C (so it's easier to use in non-C++ apps).  It was used in some commercial
+products.
+</li></ul>
+</li><li>
+Matt Welsh wrote <a href="http://www.cs.berkeley.edu/~mdw/papers/events.pdf">a paper</a>
+in April 2000 about how to balance the use of worker thread and
+event-driven techniques when building scalable servers.  
+The paper describes part of his Sandstorm I/O framework.
+</li><li>
+<a href="http://svn.sourceforge.net/viewcvs.cgi/*checkout*/int64/scale/readme.txt">Cory Nelson's Scale! library</a> - an async socket, file, and pipe I/O library for Windows
+</li></ul>
+
+<h2><a name="strategies">I/O Strategies</a></h2>
+Designers of networking software have many options.  Here are a few:
+<ul>
+<li>Whether and how to issue multiple I/O calls from a single thread
+<ul>
+	<li>Don't; use blocking/synchronous calls throughout, and possibly use multiple threads or processes to achieve concurrency
+	</li><li>Use nonblocking calls (e.g. write() on a socket set to O_NONBLOCK) to start I/O,
+	and readiness notification (e.g. poll() or /dev/poll) to know when it's OK to start the next I/O on that channel.
+	Generally only usable with network I/O, not disk I/O.
+	</li><li>Use asynchronous calls (e.g. aio_write()) to start I/O, and completion notification (e.g. signals or completion ports)
+	to know when the I/O finishes.  Good for both network and disk I/O.
+</li></ul>
+</li><li>How to control the code servicing each client
+<ul>
+	<li>one process for each client (classic Unix approach, used since 1980 or so)
+	</li><li>one OS-level thread handles many clients; each client is controlled by:
+	<ul>
+		<li>a user-level thread (e.g. GNU state threads, classic Java with green threads)
+		</li><li>a state machine (a bit esoteric, but popular in some circles; my favorite)
+		</li><li>a continuation (a bit esoteric, but popular in some circles)
+	</li></ul>
+	</li><li>one OS-level thread for each client (e.g. classic Java with native threads)
+	</li><li>one OS-level thread for each active client (e.g. Tomcat with apache front end; NT completion ports; thread pools)
+</li></ul>
+</li><li>Whether to use standard O/S services, or put some code into the 
+kernel (e.g. in a custom driver, kernel module, or VxD)
+</li></ul>
+<p>
+The following five combinations seem to be popular:
+</p><ol>
+<li><a href="#nb">Serve many clients with each thread, and use nonblocking I/O and <b>level-triggered</b> readiness notification</a>
+</li><li><a href="#nb.edge">Serve many clients with each thread, and use nonblocking I/O and readiness <b>change</b> notification</a>
+</li><li><a href="#aio">Serve many clients with each server thread, and use asynchronous I/O</a>
+</li><li><a href="#threaded">serve one client with each server thread, and use blocking I/O</a>
+</li><li><a href="#kio">Build the server code into the kernel</a>
+</li></ol>
+
+<h3><a name="nb">1. Serve many clients with each thread, and use nonblocking I/O and <b>level-triggered</b> readiness notification</a></h3>
+<p>
+... set nonblocking mode on all network handles, and use
+select() or poll() to tell which network handle has data waiting.
+This is the traditional favorite.
+With this scheme, the kernel tells you whether a file descriptor is ready,
+whether or not you've done anything with that file descriptor since the last time
+the kernel told you about it.  (The name 'level triggered' comes from computer hardware
+design; it's the opposite of <a href="#nb.edge">'edge triggered'</a>.
+Jonathon Lemon introduced the terms in his 
+<a href="http://people.freebsd.org/~jlemon/papers/kqueue.pdf">BSDCON 2000 paper on kqueue()</a>.)
+</p><p>
+Note: it's particularly important to remember that readiness notification from the
+kernel is only a hint; the file descriptor might not be ready anymore when you try
+to read from it.  That's why it's important to use nonblocking mode when using
+readiness notification.
+</p><p>
+An important bottleneck in this method is that read() or sendfile() 
+from disk blocks if the page is not in core at the moment;
+setting nonblocking mode on a disk file handle has no effect.
+Same thing goes for memory-mapped disk files.
+The first time a server needs disk I/O, its process blocks,
+all clients must wait, and that raw nonthreaded performance goes to waste.
+<br>
+This is what asynchronous I/O is for, but on systems that lack AIO,
+worker threads or processes that do the disk I/O can also get around this
+bottleneck.  One approach is to use memory-mapped files,
+and if mincore() indicates I/O is needed, ask a worker to do the I/O,
+and continue handling network traffic.  Jef Poskanzer mentions that
+Pai, Druschel, and Zwaenepoel's 1999 <a href="http://www.cs.rice.edu/~vivek/flash99/">Flash</a> web server uses this trick; they gave a talk at 
+<a href="http://www.usenix.org/events/usenix99/technical.html">Usenix '99</a> on it.
+It looks like mincore() is available in BSD-derived Unixes 
+like <a href="http://www.freebsd.org/cgi/man.cgi?query=mincore">FreeBSD</a>
+and Solaris, but is not part
+of the <a href="http://www.unix-systems.org/">Single Unix Specification</a>.
+It's available as part of Linux as of kernel 2.3.51, 
+<a href="http://www.citi.umich.edu/projects/citi-netscape/status/mar-apr2000.html">thanks to Chuck Lever</a>.
+</p><p>
+But <a href="http://marc.theaimsgroup.com/?l=freebsd-hackers&amp;m=106718343317930&amp;w=2">
+in November 2003 on the freebsd-hackers list, Vivek Pei et al reported</a> 
+very good results using system-wide profiling of their Flash web server
+to attack bottlenecks.  One bottleneck they found was
+mincore (guess that wasn't such a good idea after all)
+Another was the fact that sendfile blocks on disk access;
+they improved performance by introducing a modified sendfile() 
+that return something like EWOULDBLOCK
+when the disk page it's fetching is not yet in core.
+(Not sure how you tell the user the page is now resident...
+seems to me what's really needed here is aio_sendfile().)
+The end result of their optimizations is a SpecWeb99 score of about 800
+on a 1GHZ/1GB FreeBSD box, which is better than anything on
+file at spec.org.
+</p><p>
+There are several ways for a single thread to tell which of a set of nonblocking sockets are ready for I/O:
+</p><ul>
+<li><a name="nb.select"><b>The traditional select()</b></a> <br>
+Unfortunately, select() is limited to FD_SETSIZE handles.  
+This limit is compiled in to the standard library and user programs.
+(Some versions of the C library let you raise this limit at user app compile time.)
+<p>
+See 
+<a href="http://www.kegel.com/dkftpbench/doc/Poller_select.html">Poller_select</a>
+(<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_select.cc">cc</a>, 
+<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_select.h">h</a>)
+for an example of how to use select() interchangeably with other readiness notification schemes.
+</p><p>
+</p></li><li><a name="nb.poll"><b>The traditional poll()</b></a> <br>
+There is no hardcoded limit to the number of file descriptors poll() can handle,
+but it does get slow about a few thousand, since most of the file descriptors
+are idle at any one time, and scanning through thousands of file descriptors
+takes time.
+<p>
+Some OS's (e.g. Solaris 8) speed up poll() et al by use of techniques like poll hinting,
+which was
+<a href="http://www.humanfactor.com/cgi-bin/cgi-delegate/apache-ML/nh/1999/May/0415.html">implemented and benchmarked by Niels Provos</a> for Linux in 1999.
+</p><p>
+See 
+<a href="http://www.kegel.com/dkftpbench/doc/Poller_poll.html">Poller_poll</a>
+(<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_poll.cc">cc</a>, 
+<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_poll.h">h</a>,
+<a href="http://www.kegel.com/dkftpbench/Poller_bench.html">benchmarks</a>)
+for an example of how to use poll() interchangeably with other readiness notification schemes.
+</p><p>
+</p></li><li><a name="nb./dev/poll"><b>/dev/poll</b></a><br>
+This is the recommended poll replacement for Solaris.
+<p>
+The idea behind /dev/poll is to take advantage of the fact that often
+poll() is called many times with the same arguments.
+With /dev/poll, you get an open handle to /dev/poll, and
+tell the OS just once what files you're interested in by writing to that handle;
+from then on, you just read the set of currently ready file descriptors from that handle.
+</p><p>
+It appeared quietly in Solaris 7
+(<a href="http://sunsolve.sun.com/pub-cgi/retrieve.pl?patchid=106541&amp;collection=fpatches">see patchid 106541</a>)
+but its first public appearance was in 
+<a href="http://docs.sun.com/ab2/coll.40.6/REFMAN7/@Ab2PageView/55123?Ab2Lang=C&amp;Ab2Enc=iso-8859-1">Solaris 8</a>; 
+<a href="http://www.sun.com/sysadmin/ea/poll.html">according to Sun</a>,
+at 750 clients, this has 10% of the overhead of poll().
+</p><p>
+Various implementations of /dev/poll were tried on Linux, but 
+none of them perform as well as epoll, and were never really completed.
+/dev/poll use on Linux is not recommended.
+</p><p>
+See 
+<a href="http://www.kegel.com/dkftpbench/doc/Poller_devpoll.html">Poller_devpoll</a>
+(<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_devpoll.cc">cc</a>, 
+<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_devpoll.h">h</a>
+<a href="http://www.kegel.com/dkftpbench/Poller_bench.html">benchmarks</a>
+)
+for an example of how to use /dev/poll interchangeably with many other readiness notification 
+schemes.  (Caution - the example is for Linux /dev/poll, might not work right on Solaris.)
+</p><p>
+</p></li><li><b>kqueue()</b><br>
+This is the recommended poll replacement for FreeBSD (and, soon, NetBSD).
+<p>
+<a href="#nb.kqueue">See below.</a>  kqueue() can specify either edge triggering or level triggering.
+</p></li></ul>
+
+<h3><a name="nb.edge">2. Serve many clients with each thread, and use nonblocking I/O and readiness <b>change</b> notification</a></h3>
+Readiness change notification (or edge-triggered readiness notification)
+means you give the kernel a file descriptor, and later, when that descriptor transitions from 
+<i>not ready</i> to <i>ready</i>, the kernel notifies you somehow.  It then assumes you
+know the file descriptor is ready, and will not send any more readiness
+notifications of that type for that file descriptor until you do something
+that causes the file descriptor to no longer be ready (e.g. until you receive the
+EWOULDBLOCK error on a send, recv, or accept call, or a send or recv transfers
+less than the requested number of bytes).  
+<p>
+When you use readiness change notification, you must be prepared for spurious
+events, since one common implementation is to signal readiness whenever any
+packets are received, regardless of whether the file descriptor was already ready.
+</p><p>
+This is the opposite of "<a href="#nb">level-triggered</a>" readiness notification.
+It's a bit less forgiving of programming mistakes, since
+if you miss just one event, the connection that event was for gets stuck forever.
+Nevertheless, I have found that edge-triggered readiness notification
+made programming nonblocking clients with OpenSSL easier, so it's worth trying.
+</p><p>
+<a href="http://www.cs.rice.edu/~druschel/usenix99event.ps.gz">[Banga, Mogul, Drusha '99]</a>
+described this kind of scheme in 1999.
+</p><p>
+There are several APIs which let the application retrieve 'file descriptor became ready' notifications:
+</p><ul>
+<li><a name="nb.kqueue"><b>kqueue()</b></a>
+This is the recommended edge-triggered poll replacement for FreeBSD (and, soon, NetBSD).
+<p>
+FreeBSD 4.3 and later, and <a href="http://kerneltrap.org/node.php?id=472">NetBSD-current as of Oct 2002</a>, 
+support a generalized alternative to poll() called
+<a href="http://www.freebsd.org/cgi/man.cgi?query=kqueue&amp;apropos=0&amp;sektion=0&amp;manpath=FreeBSD+5.0-current&amp;format=html">kqueue()/kevent()</a>; 
+it supports both edge-triggering and level-triggering.
+(See also <a href="http://people.freebsd.org/~jlemon/">Jonathan Lemon's page</a>
+and his <a href="http://people.freebsd.org/~jlemon/papers/kqueue.pdf">BSDCon 2000 paper on kqueue()</a>.)
+</p><p>
+Like /dev/poll, you allocate a listening object, but rather than opening the file /dev/poll, you
+call kqueue() to allocate one.  To change the events you are listening for, or to get the
+list of current events, you call kevent() on the descriptor returned by kqueue().
+It can listen not just for socket readiness, but also for plain file readiness, signals, and even for I/O completion.
+</p><p>
+<b>Note:</b> as of October 2000, the threading library on FreeBSD does not interact well with kqueue();
+evidently, when kqueue() blocks, the entire process blocks, not just the calling thread.
+</p><p>
+See
+<a href="http://www.kegel.com/dkftpbench/doc/Poller_kqueue.html">Poller_kqueue</a>
+(<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_kqueue.cc">cc</a>, 
+<a href="http://www.kegel.com/dkftpbench/dkftpbench-0.44/Poller_kqueue.h">h</a>,
+<a href="http://www.kegel.com/dkftpbench/Poller_bench.html">benchmarks</a>)
+for an example of how to use kqueue() interchangeably with
+many other readiness notification schemes.
+</p><p>
+Examples and libraries using kqueue():
+</p><ul>
+<li><a href="http://people.freebsd.org/~dwhite/PyKQueue/">PyKQueue</a> -- a Python binding for kqueue()
+</li><li><a href="http://www.monkeys.com/kqueue/echo.c">Ronald F. Guilmette's example echo server</a>; see also 
+<a href="http://groups.yahoo.com/group/freebsd-questions/message/223580">his 28 Sept 2000 post on freebsd.questions</a>.
+</li></ul>
+<p>
+
+</p></li><li><a name="nb.epoll"><b>epoll</b></a><br>
+This is the recommended edge-triggered poll replacement for the 2.6 Linux kernel.
+<p>
+On 11 July 2001, Davide Libenzi proposed an alternative to realtime signals; his
+patch provides what he now calls
+<a href="http://www.xmailserver.org/linux-patches/nio-improve.html">/dev/epoll
+www.xmailserver.org/linux-patches/nio-improve.html</a>.  This is just like
+the realtime signal readiness notification, but it coalesces redundant events,
+and has a more efficient scheme for bulk event retrieval.  
+</p><p>
+Epoll was merged into the 2.5 kernel tree as of 2.5.46
+after its interface was changed from a special file in /dev
+to a system call, sys_epoll.  A patch for the older version of epoll is available for the 2.4 kernel.
+</p><p>
+There was a lengthy debate about 
+<a href="http://marc.theaimsgroup.com/?l=linux-kernel&amp;m=103607925020720&amp;w=2">unifying epoll, aio,
+and other event sources</a> on the linux-kernel mailing list around Halloween 2002.
+It may yet happen, but Davide is concentrating on firming up epoll in general first.
+</p><p>
+</p></li><li><a name="nb.kevent">Polyakov's kevent</a> (Linux 2.6+)
+</li></ul></body></html>
