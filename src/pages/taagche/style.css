@@ -1,0 +1,32 @@
+#taagche-content h1{
+    margin-top:1rem;
+
+    text-decoration:underline;
+    text-decoration-thickness:2px;
+
+    text-decoration-color:var(--c03);
+    font-weight:bold;
+}
+
+#taagche-content h2{
+    font-size:small;
+    font-weight:bold;
+    margin-top:1rem;
+}
+#taagche-content h2::before{
+    content: "-=- ";
+    font-weight:bold;
+}
+#taagche-content h2::after{
+    content: " -=-";
+}
+
+
+#taagche-content h3{
+    font-size:small;
+    font-weight:bold;
+}
+#taagche-content h3::before{
+    content: ">> ";
+    font-weight:bold;
+}

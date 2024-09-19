@@ -1,0 +1,54 @@
+---
+import "@styles/base.css"
+
+import Header from "@components/Header.astro";
+
+// Astro Props
+type Props={
+  title: string;
+  description: string;
+  author:string;
+};
+const {
+  title,
+  description,
+  author
+} = Astro.props;
+---
+<html lang="en">
+
+	<head>
+	<!-- Char / Direction / Default Language -->
+	<meta charset="UTF-8">
+  
+	<!-- Browser Support -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+	<!-- Screen Size -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+	<!-- FavIcon -->
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+	<!-- Title -->
+	<title> {title} </title>
+  
+	<!-- SEO -->
+	<meta name="description" content={description}>
+	<meta name="author" content={author}>
+	<!-- <meta name="generator" content={Astro.generator} /> -->
+
+	</head>
+
+	<body>
+		<Header/>
+
+		<slot/>
+	</body>
+
+</html>
+
+<style>
+
+
+</style>

@@ -1,15 +1,147 @@
 ---
+import Layout from "@layouts/Layout.astro";
 
+
+const title = "تربتی | Torbatti"
+const author = "آریا بختیاری | Arya Bakhtiari"
+const description = ""
 ---
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title={title} author={author} description={description} >
+	<div id="shro-man" class="box">
+		<p>آریا بختیاری</p>
+		<p>طراح , نویسنده</p>
+		<p>برنامه نویس</p>
+	</div>
+
+	<div id="masir">
+	<div class="box">
+
+		<h1>-=- مسیر های برنامه نویسی -=-</h1>
+
+		<p><a href="/masir/masirgo">زبان گو</a></p>
+		
+		<p><a href="/masir/masirzig">زبان زیگ</a></p>
+		<p><a href="/masir/masirc">زبان سی</a></p>
+		<p><a href="/masir/masirrust">زبان راست</a></p>
+		<p><a href="/masir/masirjs">زبان جاوا اسکریپت</a></p>
+		<p><a href="/masir/masircpp">زبان سی پلاس پلاس</a></p>
+		<!-- <p><a href="/">زبان گلیم</a></p> -->
+		<!-- <p><a href="/">زبان پی اچ پی</a></p> -->
+
+	</div>
+	</div>
+
+
+
+	<div id="taagche">
+	<div class="box">
+
+		<h1>-=- طاقچه -=-</h1>
+
+		<p><a href="/taagche/mosavar">مصورها</a></p>
+		<p><a href="/">نوشتارگان</a></p>
+		<p><a href="/">بازی ها</a></p>
+		<p><a href="/">نماواگان</a></p>
+		<p><a href="/">نواها</a></p>
+
+	</div>
+	</div>
+
+	<div id="mirror">
+	<div class="box">
+
+		<h1>-=- آینه ها -=-</h1>
+
+		<p><a href="/mirror/kegel/c10k.html">Kegel: The C10K problem</a></p>
+		<p><a href="/mirror/beej/bggit.html">Beej's Guide to Git</a></p>
+		<p><a href="/mirror/beej/bgc.html">Beej's Guide to C Programming</a></p>
+		<p><a href="/mirror/beej/bgclr.html">Beej's Guide to C Programming Library Reference</a></p>
+		<p><a href="/mirror/beej/bgnet.html">Beej's Guide to Network Programming</a></p>
+		<p><a href="/mirror/beej/bgnet0.html">Beej's Guide to Network Concepts</a></p>
+		<p><a href="/mirror/beej/bgipc.html">Beej's Guide to Interprocess Communication</a></p>
+		
+	</div>
+	</div>
+	
+
+	<div id="footer" class="box">
+		<p>طراحی و طراحی</p>
+		<p class="eshg">با عشق</p>
+		<p>آریا بختیاری</p>
+	</div>
+
+
+</Layout>
+
+
+<style>
+	#shro-man{
+		color:var(--c01);
+		padding:1rem 0;
+		font-weight:bold;
+	}
+
+
+	#masir h1{
+		font-size:small;
+		font-weight:bold;
+	}
+	#masir a{
+		font-size:small;
+		font-weight:bold;
+
+		border-bottom:2px solid var(--c03);
+	}
+	#masir a:hover{
+		color:var(--c04);
+	}
+
+
+
+	#taagche{
+		margin-top:1rem ;
+	}
+	#taagche h1{
+		font-size:small;
+		font-weight:bold;
+	}
+	#taagche a{
+		font-size:small;
+		font-weight:bold;
+
+		border-bottom:2px solid var(--c03);
+	}
+	#taagche a:hover{
+		color:var(--c04);
+	}
+
+
+	#mirror{
+		margin-top:1rem ;
+	}
+	#mirror h1{
+		font-size:small;
+		font-weight:bold;
+	}
+	#mirror a{
+		font-size:small;
+		font-weight:bold;
+
+		border-bottom:2px solid var(--c03);
+	}
+	#mirror a:hover{
+		color:var(--c04);
+	}
+
+
+
+	#footer{
+		margin-top:1.5rem;
+		font-size:small;
+		font-weight:bold;
+	}
+	#footer .eshg{
+		color:var(--c04);
+	}
+
+</style>

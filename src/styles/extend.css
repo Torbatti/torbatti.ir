@@ -1,0 +1,10 @@
+.extend-box-rtl{direction:rtl;}
+.extend-box-ltr{direction:ltr;}
+
+pre{
+    border-radius:.5rem;
+    padding:.5rem 1rem;
+    margin:.5rem 0;
+    direction:ltr;
+    font-size:small;
+}

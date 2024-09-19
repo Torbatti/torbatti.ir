@@ -1,0 +1,28 @@
+
+	<div class="box">
+
+
+		<div class="box_top">
+			<h2>نوشتارها</h2>
+		</div>
+		<div class="box_bot box_links">
+			<p><a href="">فنآوری</a></p>
+			<p><a href="">طاقچه</a></p>
+			<p><a href="">آیین</a></p>
+			<p><a href="">زبان</a></p>
+			<p><a href="">سرگذشت</a></p>
+			<p><a href="">سوداگری</a></p>
+		</div>
+
+		<div class="box_top">
+			<h2>طاقچه</h2>
+		</div>
+		<div class="box_bot box_links">
+			<p><a href="">مصورها</a></p>
+			<p><a href="">نوشتارگان</a></p>
+			<p><a href="">بازی ها</a></p>
+			<p><a href="">نماواگان</a></p>
+			<p><a href="">نواها</a></p>
+		</div>
+		
+	</div>

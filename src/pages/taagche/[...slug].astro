@@ -1,0 +1,57 @@
+---
+import Layout from "@layouts/Layout.astro";
+import "./style.css"
+
+const title = "تربتی | Torbatti"
+const author = "آریا بختیاری | Arya Bakhtiari"
+const description = ""
+
+
+import { getCollection } from 'astro:content';
+// 1. Generate a new path for every collection entry
+export async function getStaticPaths() {
+  const taagcheEntries = await getCollection('taagche');
+  return taagcheEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+// 2. For your template, you can get the entry directly from the prop
+const { entry } = Astro.props;
+const { Content , headings } = await entry.render();
+---
+<Layout title={title} author={author} description={description} >
+    <div class="box">
+        <h1>{entry.data.title}</h1>
+
+        <div id="headings">
+
+          {headings.map((heading)=>(
+            <>
+            {heading.depth == 1
+              ? <h1><a href={`#${heading.slug}`}>{heading.text}</a></h1>
+              : heading.depth == 2 ? <h2><a href={`#${heading.slug}`}>{heading.text}</a></h2>
+              : <></>
+            }
+            </>
+          ))}
+        </div>
+
+        <div id="taagche-content">
+          <Content />
+        </div>
+    </div>
+</Layout>
+
+<style>
+  #headings{
+    margin:1rem 0;
+    font-size:small;
+  }
+  #headings h1{font-weight:bold;}
+  #headings h2{font-weight:bold;padding-right:.25rem;}
+  #headings h2::before{content:"- ";}
+  
+  #content h2{
+    font-weight:bold;
+  }
+</style>
