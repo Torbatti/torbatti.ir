@@ -2,22 +2,6 @@
 title: بازی ها
 ---
 
-# تیم آیس پیک لاج | Ice-Pick Lodge
-#O# پتولاجیک | Pathologic
-#O# پتولاجیک 2 | Pathologic 2
-#O# فضای خالی | The Void
-#O# ناک ناک | Knock-knock
-
-# تیم ایکو | Team Ico 
-- (فومیتو یوعدا | Fumito Ueda)
-#O# ایکو | Ico | Ps2 | 6-8
-#O# سایه کلوسیوس | Shadow of the Colossus | Ps2 | 11-22
-
-# تیم وارپ | Warp
-- (کنجی اینو | Kenji Ino)
-#O# دشمن صفر | Enemy Zero | Saturn | 5-8
-#O# دی | D | Saturn | 2
-#O# دی 2 | D2 | Dreamcast | 9
 
 # مجموعه سیبریا | Syberia
 #O# سیبریا | Syberia | Ps2 | 9-12
@@ -67,19 +51,8 @@ title: بازی ها
 #O# رانده شده | Outcast 1.1 | Steam | 22-32
 #O# رانده شده : شروعی دوباره | Outcast: A New Beginning | Steam | 20-30
 
-# تیم سایلنت | Team Silent
-#O# تپه ی خاموش | Silent Hill | Psx/Psp | 7-14
-#O# تپه ی خاموش 2 | Silent Hill 2 | Ps2 | 8-16
-#O# تپه ی خاموش 3 | Silent Hill 3 | Ps2 | 6-12
-#O# تپه ی خاموش 4 | Silent Hill 4 | Ps2 | 9-13
-#O# تپه ی خاموش 2 ریمیک | Silent Hill 2 Remake | Steam | 15-28
 
-# تیم سیان ورلدز | Cyan Worlds
-#X# آبداکشن | Obduction | Steam | 12-15
-#O# میست | Myst | Steam | 5
-#O# میست | Myst | Psx/Psp | 6-7
-#O# ریون | Riven | Steam | 9-13
-#O# ریون | Riven | Psx/Psp | 9-14
+
 
 # مجموعه کرونو | Chrono
 #O# کرونو تریگر | Chrono Trigger | Snes | 23-42
