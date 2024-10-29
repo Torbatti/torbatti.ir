@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 )
@@ -182,7 +183,8 @@ func en_content_sub_page(w http.ResponseWriter, r *http.Request) {
 	}
 	subhead_html, err := ContentReadHtml(content_path, hub_pv, "subhead-"+sub_pv)
 	if err != nil {
-		w.Write([]byte("reading file error:" + err.Error()))
+		// w.Write([]byte("reading file error:" + err.Error()))
+		fmt.Println("reading file error:" + err.Error())
 	}
 	sub_html, err := ContentReadHtml(content_path, hub_pv, "sub-"+sub_pv)
 	if err != nil {
