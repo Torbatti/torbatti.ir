@@ -17,6 +17,10 @@ func fa_index_page(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Write([]byte("ERROR-indexshell_html : " + err.Error()))
 	}
+	indexturtle_html, err := os.ReadFile(fapage_path + "indexturtle" + ".html")
+	if err != nil {
+		w.Write([]byte("ERROR-indexturtle_html : " + err.Error()))
+	}
 
 	pt.HeadInfo.Title = "تربتی | Torbatti"
 	pt.HeadInfo.Author = "آریا بختیاری | Arya Bakhtiari"
@@ -24,7 +28,7 @@ func fa_index_page(w http.ResponseWriter, r *http.Request) {
 
 	pt.Page.HeadExtend = "<style>body{direction:rtl;}</style>"
 	pt.Page.ShellExtend = fa_base_shell + string(indexshell_html)
-	pt.Page.BodyExtend = "<div></div>"
+	pt.Page.BodyExtend = string(indexturtle_html)
 
 	pt_string, err := pt.String()
 	if err != nil {
@@ -47,9 +51,9 @@ func en_index_page(w http.ResponseWriter, r *http.Request) {
 
 	pt.LayoutName = "index"
 
-	fapage_path := "../en-pages/"
+	enpage_path := "../en-pages/"
 
-	indexshell_html, err := os.ReadFile(fapage_path + "indexshell" + ".html")
+	indexshell_html, err := os.ReadFile(enpage_path + "indexshell" + ".html")
 	if err != nil {
 		w.Write([]byte("ERROR-indexshell_html : " + err.Error()))
 	}
@@ -60,7 +64,7 @@ func en_index_page(w http.ResponseWriter, r *http.Request) {
 
 	pt.Page.HeadExtend = "<style>body{direction:ltr;}</style>"
 	pt.Page.ShellExtend = en_base_shell + string(indexshell_html)
-	pt.Page.BodyExtend = "<div></div>"
+	pt.Page.BodyExtend = ""
 
 	pt_string, err := pt.String()
 	if err != nil {
