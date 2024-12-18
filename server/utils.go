@@ -2,7 +2,7 @@ package main
 
 import "os"
 
-func ContentReadHtml(root_path string, hub_name string, part_name string) (string, error) {
+func ReadHtml(root_path string, hub_name string, part_name string) (string, error) {
 
 	data, err := os.ReadFile(root_path + hub_name + "/" + part_name + ".html")
 	if err != nil {
@@ -13,7 +13,7 @@ func ContentReadHtml(root_path string, hub_name string, part_name string) (strin
 	return string(data), nil
 }
 
-func ContentReadMd(root_path string, hub_name string, part_name string) (string, error) {
+func ReadMd(root_path string, hub_name string, part_name string) (string, error) {
 
 	data, err := os.ReadFile(root_path + hub_name + "/" + part_name + ".md")
 	if err != nil {
