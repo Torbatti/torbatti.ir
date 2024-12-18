@@ -15,15 +15,17 @@ func main() {
 
 	// bind
 	BindPublic(r)
-	BindIndex(r)
-	BindContent(r)
+	BindMirror(r)
+
+	// BindIndex(r)
+	// BindContent(r)
 
 	// create server struct
 	server := http.Server{
 		Addr:    ":8585",
 		Handler: r,
 	}
-	log.Println("Starting server on port", server.Addr)
+	log.Println("Starting server on port", "localhost"+server.Addr)
 
 	//listen and serve
 	server.ListenAndServe()
