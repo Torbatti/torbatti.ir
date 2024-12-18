@@ -1,31 +1,12 @@
-/* #body-box{} */
-@media screen and (min-width: 720px) {
-  #body-box{
-    margin:auto;
-    width:720;
-    display:flex;
-  }
-  #body-box #shell{
-    box-sizing: border-box;
-    /* background-color:red; */
-    padding:2px 4px;
-    font-size:small;
-    width:240px;
-  }
-  #body-box #turtle{
-    width:480px;
-  }
-}
-
-#body-box #shell *,
-#body-box #shell *::after,
-#body-box #shell *::before {
+*,
+*::after,
+*::before {
   box-sizing:   border-box;
   margin:       0;
   padding:      0;
   font:         inherit;
 }
-#body-box #shell *{
+*{
   padding:0;
   margin:0;
   border: 0;
@@ -34,31 +15,55 @@
 	font: inherit;
   vertical-align:baseline;
 }
-#body-box #shell{font-family:Vazirmatn,sans-serif;}
 
 @font-face {
-    font-family: 'Vazirmatn';
-    src: url('/public/fonts/Vazirmatn[wght].woff2') format('woff2 supports variations'),
-    url('/public/fonts/Vazirmatn[wght].woff2') format('woff2-variations');
-    /* src: url('/public/fonts/Vazirmatn[wght].woff2') format('woff2-variations'); */
-    font-weight: 100 900;
-    font-style: normal;
-    font-display: swap;
+  font-family: 'Vazirmatn';
+  src: url('/public/fonts/Vazirmatn[wght].woff2') format('woff2 supports variations'),
+  url('/public/fonts/Vazirmatn[wght].woff2') format('woff2-variations');
+  /* src: url('/public/fonts/Vazirmatn[wght].woff2') format('woff2-variations'); */
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
-.box{width:320px;margin:auto;}
-@media screen and (min-width: 720px) {.box{width:640px;}}
+#turtle-shell{font-family:Vazirmatn,sans-serif;}
+@media screen and (min-width: 720px) {
+  #turtle-shell{
+    margin:auto;
+    width:720px;
+    display:flex;
+  }
+  #turtle-shell #shell{
+    box-sizing: border-box;
+    /* background-color:red; */
+    padding:2px 4px;
+    font-size:small;
+    width:240px;
+  }
+  #turtle-shell #turtle{
+    width:480px;
+  }
+}
+
+.rtl{direction:rtl !important;}
+.ltr{direction:ltr !important;}
+
+/* #header p a{font-weight:bold;} */
+
+/* turtle-shell Shell */
+#turtle-shell #shell #shell-listbox h1{font-weight:bold;padding:.5rem 0;}
+#turtle-shell #shell #shell-listbox p{padding:.25rem;}
+#turtle-shell #shell #shell-listbox a{padding:.25rem;color:black;}
+#turtle-shell #shell #shell-listbox p:hover{text-decoration:underline;cursor: pointer;}
+#turtle-shell #shell #shell-header p a{display:inline-block;font-weight:bold;color:black;padding:.75rem .5rem;}
+
+/* turtle-shell Turtle */
+#turtle-shell #turtle h1,
+#turtle-shell #turtle h2,
+#turtle-shell #turtle h3
+{font-weight:bold;padding:.25rem;}
+#turtle-shell #turtle p{padding:.25rem;}
 
 
-#header p a{font-weight:bold;}
-
-
-#body-box #shell #content_list h1{font-weight:bold;padding:.5rem 0;}
-#body-box #shell #content_list p{padding:.25rem;}
-#body-box #shell #content_list a{padding:.25rem;color:black;}
-#body-box #shell #content_list p:hover{text-decoration:underline;cursor: pointer;}
-
-#body-box.fa #shell #content_show_rtl{direction:rtl;}
-#body-box.en #shell #content_show_rtl{direction:ltr;}
-
-#body-box #shell #shell-header p a{display:inline-block;font-weight:bold;color:black;padding:.75rem .5rem;}
+body.lang-fa{direction:rtl;}
+body.lang-en{direction:ltr;}
