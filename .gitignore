@@ -1,3 +1,4 @@
-/mirror
+/mirror/*.html
+/mirror/*.zip
 /media
 _dep/
