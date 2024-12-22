@@ -6,7 +6,11 @@ import (
 	"net/http"
 )
 
+var CacheTime string
+
 func main() {
+	CacheTime = "60"
+
 	// Create Server Mux
 	r := http.NewServeMux()
 
@@ -17,13 +21,13 @@ func main() {
 	BindPublic(r)
 	BindMirror(r)
 
-	// BindIndex(r)
-	// BindContent(r)
+	BindPages(r)
+	BindContent(r)
 
 	// create server struct
 	server := http.Server{
 		Addr:    ":8585",
-		Handler: r,
+		Handler: Logging(r),
 	}
 	log.Println("Starting server on port", "localhost"+server.Addr)
 

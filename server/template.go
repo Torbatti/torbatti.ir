@@ -17,10 +17,6 @@ type PageTemplate struct {
 
 	// Body
 	ExtendBody string
-
-	// Turtle Shell
-	Shell  string
-	Turtle string
 }
 
 func (templ PageTemplate) String() string {
@@ -81,27 +77,12 @@ func (templ PageTemplate) String() string {
 		`
 	}
 
-	if templ.Shell != "" || templ.Turtle != "" {
-		templ_string = templ_string + `
-		<div id="turtle-shell">
-		<div id="shell">
-		`
-		templ_string = templ_string + templ.Shell
-		templ_string = templ_string + `
-		</div>
-    	<div id="turtle">
-		`
-		templ_string = templ_string + templ.Turtle
-		templ_string = templ_string + `
-		</div>
-		</div>
-		`
-	} else {
+	if templ.ExtendBody != "" {
 		templ_string = templ_string + templ.ExtendBody
 	}
 
 	templ_string = templ_string + `
-	</body>
+		</body>
 	</html>
 	`
 
