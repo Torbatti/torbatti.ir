@@ -1,0 +1,49 @@
+*,
+*::after,
+*::before {
+  box-sizing:   border-box;
+  margin:       0;
+  padding:      0;
+  font:         inherit;
+}
+*{
+  padding:0;
+  margin:0;
+  border: 0;
+  box-sizing:border-box;
+	font-size: 100%;
+	font: inherit;
+  vertical-align:baseline;
+}
+
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/Vazirmatn[wght].woff2') format('woff2 supports variations'),
+  url('/Vazirmatn[wght].woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.box{width:calc(100dvw - 1rem);margin:auto;}
+@media screen and (min-width: 360px) {
+  .box{width:calc(360px - 1rem);}
+}
+@media screen and (min-width: 720px) {
+  .box{width:calc(720px - 1rem);}
+}
+
+.pad{
+  padding:1rem 0;
+}
+
+.rtl{direction:rtl !important;}
+.ltr{direction:ltr !important;}
+
+body{font-family:Vazirmatn,sans-serif;}
+header a{color:black;font-weight:bold;padding:.5rem 0;}
+
+h1{font-size:x-large;padding:.25rem 0;}
+h2{font-weight:bold;padding:.25rem 0;}
+
+a{display:inline-block;color:black;padding:.5rem .25rem;}
