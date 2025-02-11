@@ -17,4 +17,5 @@ jobs:
         run: |
           npm install -g @chabokan.net/cli
           chabok login -t $CHABOKAN_TOKEN
+          cd dist/pages
           chabok deploy -s torbatti-ir
